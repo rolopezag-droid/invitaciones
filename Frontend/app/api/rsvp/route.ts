@@ -34,21 +34,23 @@ export async function POST(request: Request) {
 
   await ensureDatabase();
   const normalizedName = normalizeName(name);
-  const guest = await env.DB.prepare('SELECT id, name, confirmed_at FROM guests WHERE normalized_name = ? LIMIT 1')
+  const existingGuest = await env.DB.prepare('SELECT id, name, confirmed_at FROM guests WHERE normalized_name = ? LIMIT 1')
     .bind(normalizedName)
     .first<{ id: string; name: string; confirmed_at: string | null }>();
 
-  if (!guest) {
-    return Response.json(
-      { error: 'No encontramos ese nombre en la lista. Revisa cómo está escrito o comunícate con los anfitriones.' },
-      { status: 404 },
-    );
+  if (existingGuest) {
+    return Response.json({
+      guest: existingGuest.name,
+      confirmedAt: existingGuest.confirmed_at,
+      alreadyConfirmed: true,
+      event: eventDetails,
+    });
   }
 
-  const confirmedAt = guest.confirmed_at ?? new Date().toISOString();
-  if (!guest.confirmed_at) {
-    await env.DB.prepare('UPDATE guests SET confirmed_at = ? WHERE id = ?').bind(confirmedAt, guest.id).run();
-  }
+  const confirmedAt = new Date().toISOString();
+  await env.DB.prepare('INSERT INTO guests (id, name, normalized_name, confirmed_at) VALUES (?, ?, ?, ?)')
+    .bind(crypto.randomUUID(), name, normalizedName, confirmedAt)
+    .run();
 
-  return Response.json({ guest: guest.name, confirmedAt, alreadyConfirmed: Boolean(guest.confirmed_at), event: eventDetails });
+  return Response.json({ guest: name, confirmedAt, alreadyConfirmed: false, event: eventDetails });
 }
