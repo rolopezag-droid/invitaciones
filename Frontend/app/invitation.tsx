@@ -110,7 +110,7 @@ export default function Invitation() {
                   <div className="flex items-start gap-3"><MapPin className="mt-0.5 size-5 shrink-0 text-accent" /><span><strong className="block text-foreground">{eventDetails.venue}</strong>Tepic, Nayarit</span></div>
                 </div>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <Button variant="outline" size="lg" className="h-12 rounded-none" render={<a href={eventDetails.mapsUrl!} target="_blank" rel="noreferrer" />}><MapPin /> Ver en Google Maps</Button>
+                  <Button variant="outline" size="lg" className="h-12 rounded-none" nativeButton={false} render={<a href={eventDetails.mapsUrl!} target="_blank" rel="noreferrer" />}><MapPin /> Ver en Google Maps</Button>
                   <Button size="lg" className="h-12 justify-between rounded-none px-5 text-base" onClick={() => setView('form')}>Confirmar asistencia <ArrowRight className="size-5" /></Button>
                 </div>
               </>
