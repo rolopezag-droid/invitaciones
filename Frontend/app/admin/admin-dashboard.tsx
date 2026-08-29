@@ -54,9 +54,16 @@ export default function AdminDashboard() {
     const url = window.location.origin;
     setPublicUrl(url);
     QRCode.toDataURL(url, { width: 420, margin: 2, color: { dark: '#123f43', light: '#fffdf8' } }).then(setQrUrl);
-    const accessKey = new URLSearchParams(window.location.search).get('access');
+    const queryAccessKey = new URLSearchParams(window.location.search).get('access');
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const hashAccessKey = hashParams.get('access');
+    const sessionToken = hashParams.get('session');
+    const accessKey = queryAccessKey || hashAccessKey;
     async function activateAndLoad() {
-      if (accessKey) {
+      if (sessionToken) {
+        window.localStorage.setItem(ADMIN_TOKEN_KEY, sessionToken);
+        window.history.replaceState(null, '', '/admin');
+      } else if (accessKey) {
         const response = await fetch('/api/admin/session', {
           method: 'POST',
           credentials: 'include',
