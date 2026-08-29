@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "graduacion-adela-arquitectura",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-08-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "assets": {
+    "directory": "dist/client"
+  },
+  "vars": {
+    "SITE_URL": "https://graduacion-adela-arquitectura.invitaciones-rolopezag.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "graduacion-adela-db",
+      "database_id": "8f08d1e3-5468-4f39-b418-47ddd10e1ccd",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

@@ -160,7 +160,7 @@ export default function AdminDashboard() {
 
           <aside className="border bg-card p-5 lg:sticky lg:top-6 lg:self-start">
             <p className="text-sm font-semibold">Código QR</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">Ábrelo desde otro dispositivo conectado a la misma red.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Descárgalo y compártelo con los invitados para abrir la invitación pública.</p>
             {qrUrl && <img src={qrUrl} alt="Código QR del enlace de invitación" className="mx-auto mt-5 aspect-square w-full max-w-52" />}
             {qrUrl && <a href={qrUrl} download="qr-invitacion-adela.png" className="mt-4 flex h-10 items-center justify-center gap-2 border text-sm font-medium hover:bg-muted"><Download className="size-4" /> Descargar QR</a>}
           </aside>
