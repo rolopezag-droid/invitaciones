@@ -1,4 +1,4 @@
-import { createAdminSession, isSameOrigin, validateAccessKey } from '@/lib/admin-auth';
+import { createAdminSessionCookie, createAdminSessionToken, isSameOrigin, validateAccessKey } from '@/lib/admin-auth';
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return Response.json({ error: 'Solicitud no permitida.' }, { status: 403 });
@@ -9,8 +9,9 @@ export async function POST(request: Request) {
   if (!(await validateAccessKey(accessKey))) {
     return Response.json({ error: 'El enlace administrativo no es válido o expiró.' }, { status: 401 });
   }
+  const token = await createAdminSessionToken();
   return Response.json(
-    { ok: true },
-    { headers: { 'Set-Cookie': await createAdminSession(request), 'Cache-Control': 'no-store' } },
+    { ok: true, token },
+    { headers: { 'Set-Cookie': createAdminSessionCookie(request, token), 'Cache-Control': 'no-store' } },
   );
 }

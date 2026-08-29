@@ -7,6 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 type Guest = { id: string; name: string; confirmedAt: string };
+const ADMIN_TOKEN_KEY = 'adela_admin_token';
+
+function adminHeaders(includeJson = false) {
+  const token = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -26,7 +35,11 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/admin/guests', { cache: 'no-store' });
+      const response = await fetch('/api/admin/guests', {
+        cache: 'no-store',
+        credentials: 'include',
+        headers: adminHeaders(),
+      });
       const data = (await response.json()) as { guests?: Guest[]; error?: string };
       if (!response.ok) throw new Error(data.error ?? 'No pudimos cargar las confirmaciones.');
       setGuests(data.guests ?? []);
@@ -46,6 +59,7 @@ export default function AdminDashboard() {
       if (accessKey) {
         const response = await fetch('/api/admin/session', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ accessKey }),
         });
@@ -57,6 +71,8 @@ export default function AdminDashboard() {
           setActivating(false);
           return;
         }
+        const data = (await response.json()) as { token?: string };
+        if (data.token) window.localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
       }
       setActivating(false);
       await loadGuests();
@@ -73,7 +89,8 @@ export default function AdminDashboard() {
     if (!window.confirm(`¿Eliminar la confirmación de ${guest.name}?`)) return;
     const response = await fetch('/api/admin/guests', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      headers: adminHeaders(true),
       body: JSON.stringify({ id: guest.id }),
     });
     if (response.ok) setGuests((current) => current.filter((item) => item.id !== guest.id));

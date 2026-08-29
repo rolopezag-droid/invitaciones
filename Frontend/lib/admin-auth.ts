@@ -39,22 +39,32 @@ export async function validateAccessKey(candidate: string) {
   return adminSecretsConfigured() && candidate.length <= 256 && secureEqual(candidate, env.ADMIN_ACCESS_KEY);
 }
 
-export async function createAdminSession(request: Request) {
+export async function createAdminSessionToken() {
   const expires = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
   const payload = String(expires);
-  const token = `${payload}.${await sign(payload)}`;
+  return `${payload}.${await sign(payload)}`;
+}
+
+export function createAdminSessionCookie(request: Request, token: string) {
   const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_SECONDS}${secure}`;
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_SECONDS}${secure}`;
+}
+
+async function validateSessionToken(token: string) {
+  const [expires, signature] = token.split('.');
+  if (!expires || !signature || Number(expires) <= Math.floor(Date.now() / 1000)) return false;
+  return secureEqual(signature, await sign(expires));
 }
 
 export async function hasAdminSession(request: Request) {
   if (!adminSecretsConfigured()) return false;
   const cookie = request.headers.get('Cookie') ?? '';
-  const token = cookie.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`))?.slice(COOKIE_NAME.length + 1);
+  const cookieToken = cookie.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`))?.slice(COOKIE_NAME.length + 1);
+  const authorization = request.headers.get('Authorization') ?? '';
+  const bearerToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+  const token = cookieToken || bearerToken;
   if (!token) return false;
-  const [expires, signature] = token.split('.');
-  if (!expires || !signature || Number(expires) <= Math.floor(Date.now() / 1000)) return false;
-  return secureEqual(signature, await sign(expires));
+  return validateSessionToken(token);
 }
 
 export function isSameOrigin(request: Request) {
