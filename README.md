@@ -1,6 +1,6 @@
-# Invitación de graduación de Roberto
+# Invitación de graduación de Adela
 
-Aplicación web para compartir la invitación, registrar confirmaciones de asistencia y consultar la lista de invitados.
+Aplicación web de temática arquitectónica para compartir la invitación de graduación de Adela Sánchez Dueñas, registrar confirmaciones de asistencia y consultar la lista de invitados.
 
 ## Estructura
 

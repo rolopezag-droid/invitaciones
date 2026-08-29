@@ -1,41 +1,118 @@
-import { CalendarDays, GraduationCap, MapPin, Sparkles } from 'lucide-react';
+'use client';
+
+import { FormEvent, useState } from 'react';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, DraftingCompass, LoaderCircle, MapPin, Ruler } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+
+type EventDetails = {
+  title: string;
+  degree: string;
+  start: string | null;
+  end: string | null;
+  venue: string | null;
+  address: string | null;
+  mapsUrl: string | null;
+};
+
+type Confirmation = { guest: string; alreadyConfirmed: boolean; event: EventDetails };
 
 export default function Invitation() {
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-background px-5 py-8 text-foreground sm:px-8 sm:py-12">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 invitation-grid opacity-40" />
-      <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-8 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-accent/35 blur-3xl" />
+  const [view, setView] = useState<'intro' | 'form' | 'success'>('intro');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
-      <section className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/60 bg-card/90 shadow-[0_32px_100px_rgba(45,29,20,0.14)] backdrop-blur lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="relative flex flex-col justify-between overflow-hidden bg-primary px-7 py-8 text-primary-foreground sm:px-12 sm:py-11">
-          <div aria-hidden="true" className="absolute -right-20 -top-20 h-64 w-64 rounded-full border border-white/15" />
-          <div aria-hidden="true" className="absolute -right-8 -top-8 h-40 w-40 rounded-full border border-white/15" />
-          <div className="relative flex items-center gap-3 text-sm font-medium tracking-[0.18em] text-white/80 uppercase">
-            <span className="grid size-10 place-items-center rounded-full border border-white/20 bg-white/10"><GraduationCap className="size-5" /></span>
-            Mi graduación
-          </div>
-          <div className="relative my-14 max-w-xl lg:my-8">
-            <p className="mb-5 flex items-center gap-2 font-medium text-white/70"><Sparkles className="size-4" /> Un día que quiero compartir contigo</p>
-            <h1 className="font-heading text-5xl leading-[0.96] font-semibold tracking-[-0.045em] text-balance sm:text-6xl xl:text-7xl">¡Lo logramos!</h1>
-            <p className="mt-7 max-w-lg text-base leading-7 text-white/78 sm:text-lg">Gracias por ser parte de mi historia. Me dará mucha alegría celebrar este logro contigo.</p>
-          </div>
-          <div className="relative grid gap-4 border-t border-white/15 pt-6 text-sm text-white/75 sm:grid-cols-2">
-            <div className="flex items-center gap-3"><CalendarDays className="size-5 text-accent" /><span>Fecha por confirmar</span></div>
-            <div className="flex items-center gap-3"><MapPin className="size-5 text-accent" /><span>Lugar por confirmar</span></div>
+  async function confirmAttendance(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const response = await fetch('/api/rsvp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data = (await response.json()) as Confirmation & { error?: string };
+      if (!response.ok) throw new Error(data.error ?? 'No pudimos registrar tu asistencia.');
+      setConfirmation(data);
+      setView('success');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Ocurrió un error. Inténtalo nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="grid min-h-screen lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="relative min-h-[45vh] overflow-hidden lg:min-h-screen">
+          <img src="/adela-arquitectura.png" alt="Maqueta arquitectónica, planos y herramientas de dibujo sobre una mesa de trabajo" className="absolute inset-0 h-full w-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#18272a]/75 via-transparent to-[#18272a]/10 lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#18272a]/18" />
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white sm:p-10 lg:p-12">
+            <div className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase">
+              <span className="grid size-10 place-items-center border border-white/40 bg-black/10 backdrop-blur"><DraftingCompass className="size-5" /></span>
+              Arquitectura · Generación 2022–2026
+            </div>
+            <span className="hidden text-xs tracking-[0.18em] uppercase sm:block">Proyecto concluido</span>
           </div>
         </div>
-        <div className="flex items-center px-7 py-10 sm:px-12 lg:px-14">
-          <div className="w-full">
-            <span className="inline-flex rounded-full bg-accent px-3 py-1 text-xs font-semibold tracking-[0.12em] text-accent-foreground uppercase">Invitación personal</span>
-            <h2 className="mt-6 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">¿Nos acompañas a celebrar?</h2>
-            <p className="mt-4 max-w-md leading-7 text-muted-foreground">Confirma tu asistencia para reservar tu lugar. El registro sólo tomará un momento.</p>
-            <div className="mt-8 rounded-2xl border bg-muted/45 p-5">
-              <p className="text-sm font-medium">Tu respuesta nos ayudará a preparar cada detalle.</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Podrás indicar si asistirás, agregar acompañantes y dejarnos cualquier observación importante.</p>
-            </div>
-            <button type="button" className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground shadow-lg shadow-primary/15 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Confirmar mi asistencia <span aria-hidden="true">→</span></button>
-            <p className="mt-4 text-center text-xs text-muted-foreground">Con cariño, Roberto López Águila</p>
+
+        <div className="relative flex items-center overflow-hidden px-6 py-12 sm:px-12 lg:px-14 xl:px-20">
+          <div aria-hidden="true" className="blueprint-lines pointer-events-none absolute inset-0 opacity-35" />
+          <div className="relative mx-auto w-full max-w-xl">
+            {view === 'intro' && (
+              <>
+                <div className="mb-10 flex items-center gap-4"><span className="h-px w-12 bg-accent" /><p className="text-xs font-bold tracking-[0.22em] text-muted-foreground uppercase">Invitación de graduación</p></div>
+                <p className="font-heading text-xl italic text-muted-foreground">Con enorme alegría celebramos a</p>
+                <h1 className="mt-3 font-heading text-5xl leading-[0.92] font-semibold tracking-[-0.035em] sm:text-6xl xl:text-7xl">Adela<br />Sánchez Dueñas</h1>
+                <div className="mt-7 flex items-center gap-3 text-sm font-semibold tracking-[0.16em] text-primary uppercase"><Ruler className="size-4" /> Licenciatura en Arquitectura</div>
+                <p className="mt-8 max-w-lg leading-7 text-muted-foreground">Después de tantos planos, ideas y noches de trabajo, llegó el momento de celebrar el comienzo de una nueva etapa. Tu presencia hará este día todavía más especial.</p>
+                <div className="mt-9 grid gap-3 border-y py-5 text-sm sm:grid-cols-2">
+                  <div className="flex items-center gap-3"><CalendarDays className="size-5 text-accent" /><span>Fecha por confirmar</span></div>
+                  <div className="flex items-center gap-3"><MapPin className="size-5 text-accent" /><span>Ubicación disponible al confirmar</span></div>
+                </div>
+                <Button size="lg" className="mt-8 h-12 w-full justify-between rounded-none px-5 text-base" onClick={() => setView('form')}>Confirmar mi asistencia <ArrowRight className="size-5" /></Button>
+              </>
+            )}
+
+            {view === 'form' && (
+              <form onSubmit={confirmAttendance}>
+                <button type="button" onClick={() => { setView('intro'); setError(''); }} className="mb-10 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a la invitación</button>
+                <p className="text-xs font-bold tracking-[0.22em] text-muted-foreground uppercase">Confirmación</p>
+                <h2 className="mt-4 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">Nos encantará contar contigo.</h2>
+                <p className="mt-4 leading-7 text-muted-foreground">Escribe tu nombre tal como aparece en la lista de invitados.</p>
+                <Field className="mt-8" data-invalid={Boolean(error)}>
+                  <FieldLabel htmlFor="guest-name">Nombre completo</FieldLabel>
+                  <Input id="guest-name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" className="h-12 rounded-none bg-card px-4" aria-invalid={Boolean(error)} required minLength={3} maxLength={120} autoFocus />
+                  <FieldDescription>No solicitaremos teléfono ni información adicional.</FieldDescription>
+                  <FieldError>{error}</FieldError>
+                </Field>
+                <Button type="submit" size="lg" className="mt-7 h-12 w-full rounded-none text-base" disabled={loading || name.trim().length < 3}>
+                  {loading ? <><LoaderCircle className="animate-spin" /> Verificando invitación</> : <>Sí, confirmo mi asistencia <Check /></>}
+                </Button>
+              </form>
+            )}
+
+            {view === 'success' && confirmation && (
+              <div aria-live="polite">
+                <span className="grid size-14 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="size-7" /></span>
+                <p className="mt-8 text-xs font-bold tracking-[0.22em] text-muted-foreground uppercase">Asistencia confirmada</p>
+                <h2 className="mt-3 font-heading text-4xl font-semibold sm:text-5xl">¡Gracias, {confirmation.guest}!</h2>
+                <p className="mt-4 leading-7 text-muted-foreground">{confirmation.alreadyConfirmed ? 'Tu asistencia ya estaba registrada. Aquí tienes nuevamente los detalles.' : 'Tu asistencia quedó registrada. Nos dará mucho gusto celebrar contigo.'}</p>
+                {confirmation.event.venue && (
+                  <div className="mt-8 border-y py-6">
+                    <p className="font-semibold">{confirmation.event.venue}</p>
+                    {confirmation.event.address && <p className="mt-1 text-sm text-muted-foreground">{confirmation.event.address}</p>}
+                    {confirmation.event.mapsUrl && <a href={confirmation.event.mapsUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 font-semibold text-primary underline underline-offset-4"><MapPin className="size-4" /> Abrir en Google Maps</a>}
+                  </div>
+                )}
+                {!confirmation.event.venue && <p className="mt-8 border-y py-6 text-sm text-muted-foreground">La ubicación y el horario se publicarán próximamente.</p>}
+              </div>
+            )}
           </div>
         </div>
       </section>

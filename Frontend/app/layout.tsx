@@ -7,18 +7,18 @@ const cormorant = Cormorant_Garamond({ variable: '--font-cormorant', subsets: ['
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? 'http://localhost:3000'),
-  title: 'Graduación de Roberto | Confirma tu asistencia',
-  description: 'Acompáñame a celebrar mi graduación y confirma aquí tu asistencia.',
+  title: 'Graduación de Adela | Arquitectura',
+  description: 'Acompaña a Adela Sánchez Dueñas a celebrar su graduación en Arquitectura.',
   openGraph: {
-    title: 'Graduación de Roberto',
-    description: 'Confirma tu asistencia y acompáñame a celebrar.',
-    images: ['/og.png'],
+    title: 'Graduación de Adela Sánchez Dueñas',
+    description: 'Celebremos juntos su graduación en Arquitectura.',
+    images: ['/adela-arquitectura.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Graduación de Roberto',
-    description: 'Confirma tu asistencia y acompáñame a celebrar.',
-    images: ['/og.png'],
+    title: 'Graduación de Adela Sánchez Dueñas',
+    description: 'Celebremos juntos su graduación en Arquitectura.',
+    images: ['/adela-arquitectura.png'],
   },
 };
 
