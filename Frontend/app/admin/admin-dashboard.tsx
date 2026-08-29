@@ -85,6 +85,33 @@ export default function AdminDashboard() {
     window.setTimeout(() => setCopied(false), 1800);
   }
 
+  async function shareOrDownloadQr() {
+    if (!qrUrl) return;
+    const blob = await (await fetch(qrUrl)).blob();
+    const file = new File([blob], 'qr-invitacion-adela.png', { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Invitación de graduación de Adela',
+        text: 'Escanea este código para abrir la invitación.',
+      }).catch((caught) => {
+        if (caught instanceof DOMException && caught.name === 'AbortError') return;
+        throw caught;
+      });
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  }
+
   function exportText() {
     const lines = [
       'CONFIRMACIONES · GRADUACIÓN DE ADELA',
@@ -162,7 +189,7 @@ export default function AdminDashboard() {
             <p className="text-sm font-semibold">Código QR</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">Descárgalo y compártelo con los invitados para abrir la invitación pública.</p>
             {qrUrl && <img src={qrUrl} alt="Código QR del enlace de invitación" className="mx-auto mt-5 aspect-square w-full max-w-52" />}
-            {qrUrl && <a href={qrUrl} download="qr-invitacion-adela.png" className="mt-4 flex h-10 items-center justify-center gap-2 border text-sm font-medium hover:bg-muted"><Download className="size-4" /> Descargar QR</a>}
+            {qrUrl && <Button type="button" variant="outline" className="mt-4 h-10 w-full rounded-none" onClick={shareOrDownloadQr}><Download className="size-4" /> Guardar o compartir QR</Button>}
           </aside>
         </section>
       </div>
